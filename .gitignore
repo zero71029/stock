@@ -31,3 +31,7 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### 自訂 ###
+ZeroTools.java
+application.properties
