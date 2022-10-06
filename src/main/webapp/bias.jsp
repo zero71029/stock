@@ -47,7 +47,7 @@
                     async: false,//同步請求
                     cache: false,//不快取頁面
                     success: rawData => {
-                     
+
                         var data = splitData(rawData);
                         console.log(data);
 
@@ -432,9 +432,5 @@
         function double2(n) {
             return Math.round(n * 100) / 100;
         }
-        function bias(data, n) {
-            
 
-
-        }
     </script>

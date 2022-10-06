@@ -472,14 +472,7 @@
                 }
                 OBVavg.push(sum/10);                
             }
-
-
-
-
-
-
             return OBVavg;
-
         }
 
 

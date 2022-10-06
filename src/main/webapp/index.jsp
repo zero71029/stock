@@ -20,11 +20,8 @@
             <script src="${pageContext.request.contextPath}/js/echarts.min.js"></script>
         </head>
 
-        <body>
+        <body>           
 
-            <!-- hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh.
-<div id="main" style="width: 100%;height:900px;">圖所在</div>
-hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh -->
             <div class="app">
                 <el-button type="primary" icon="el-icon-arrow-left" size="small" @click="next('right')"></el-button>
 
@@ -43,6 +40,7 @@ hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh -->
                 </el-select>
                 <el-button type="primary" @click="clickStock">送出</el-button>
                 <br>
+                <div id="main" style="width: 100%;height:900px;">圖所在</div>
                 <div v-show="yes != ''">
                     成功 = {{yes}} 次<br>
                     失敗 = {{err}} 次<br>
@@ -69,11 +67,13 @@ hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh -->
                 <script>stockName.push('${s}');</script>
             </c:forEach>
             <script>
-// 2207 :473
-// 2327 :483
-// 1476 :334
-// 2454 :303
-// 2492 :307
+                const upColor = '#ec0000';
+                const downColor = '#00da3c';
+                // 2207 :473
+                // 2327 :483
+                // 1476 :334
+                // 2454 :303
+                // 2492 :307
                 const vm = new Vue({
                     el: ".app",
                     data() {
@@ -96,33 +96,24 @@ hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh -->
                             day80: [],
                             buyday: [],
                             xAxis: [],
-
+                            option:{},
                         }
                     },
                     created() {
-                        // $.ajax({
-                        //     url: '${pageContext.request.contextPath}/zero',
-                        //     type: 'POST',
-                        //     async: false,//同步請求
-                        //     cache: false,//不快取頁面
-                        //     success: response => {
-                        //         this.price = response.price;
-                        //         this.list = response;
-                        //         this.day5 = response.day5;
-                        //         this.day20 = response.day20;
-                        //         this.day80 = response.day80;
-                        //         this.buyday = response.buyday;
-                        //         this.xAxis = response.xAxis...;
-                        //         console.log(response);
-                        //         this.char();
-                        //     },.
-                        //     error: function (returndata) {
-                        //         console.log(returndata);
-                        //     }
-                        // });vdsfffffsdjjjee
+                        $.ajax({
+                            url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
+                            type: 'POST',
+                            async: false,//同步請求
+                            cache: false,//不快取頁面
+                            success: rawData => {                              
+                                var data = splitData(rawData);
+                                console.log(data);
+                                this.option = this.setOption(data);                                                                                     
+                            }
+                        })
                     },
                     mounted() {
-                        // this.char();
+                        // this.char(this.option);
                     },
                     methods: {
                         clickStock() {
@@ -153,71 +144,261 @@ hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh -->
                                     console.log(returndata);
                                 }
                             });
+                            $.ajax({
+                            url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
+                            type: 'POST',
+                            async: false,//同步請求
+                            cache: false,//不快取頁面
+                            success: rawData => {                              
+                                var data = splitData(rawData);
+                                console.log(data);
+                                this.option = this.setOption(data);
+                                this.char(this.option);                                                         
+                            }
+                        })
                         },
-                        char() {
-                            var chartDom = document.getElementById('main');
-                            var myChart = echarts.init(chartDom);
-                            var option;
-                            option = {
-                                title: {
-                                    text: 'Stacked Line'
+                        char(option) {
+                            let myChart = echarts.init(document.getElementById('main'), 'dark');
+                            myChart.setOption(option, true);
+                            // myChart.dispose();
+                        },
+                        setOption(data) {
+                            console.log(data);
+                            return {
+                                animation: false,
+                                legend: {
+                                    bottom: 10,
+                                    left: 'center',
+                                    data: ['Dow-Jones index', 'MA20', 'SAR']
                                 },
                                 tooltip: {
-                                    trigger: 'axis'
+                                    trigger: 'axis',
+                                    axisPointer: {
+                                        type: 'cross'
+                                    },
+                                    borderWidth: 1,
+                                    borderColor: '#ccc',
+                                    padding: 10,
+                                    textStyle: {
+                                        color: '#000'
+                                    },
+                                    position: function (pos, params, el, elRect, size) {
+                                        const obj = {
+                                            top: 10
+                                        };
+                                        obj[['left', 'right'][+(pos[0] < size.viewSize[0] / 2)]] = 30;
+                                        return obj;
+                                    }
+                                    // extraCssText: 'width: 170px'
                                 },
-
-                                grid: {
-                                    left: '3%',
-                                    right: '4%',
-                                    bottom: '3%',
-                                    containLabel: true
+                                axisPointer: {
+                                    link: [
+                                        {
+                                            xAxisIndex: 'all'
+                                        }
+                                    ],
+                                    label: {
+                                        backgroundColor: '#777'
+                                    }
                                 },
                                 toolbox: {
                                     feature: {
-                                        saveAsImage: {}
+                                        dataZoom: {
+                                            yAxisIndex: false
+                                        },
+                                        brush: {
+                                            type: ['lineX', 'clear']
+                                        }
                                     }
                                 },
-                                xAxis: {
-                                    type: 'category',
-                                    boundaryGap: false,
-                                    data: this.xAxis
+                                brush: {
+                                    xAxisIndex: 'all',
+                                    brushLink: 'all',
+                                    outOfBrush: {
+                                        colorAlpha: 0.1
+                                    }
                                 },
-                                yAxis: {
-                                    type: 'value',
 
-                                },
+                                grid: [
+                                    {
+                                        left: '10%',
+                                        right: '8%',
+                                        height: '50%'
+                                    },
+                                    {
+                                        left: '10%',
+                                        right: '8%',
+                                        top: '63%',
+                                        height: '16%'
+                                    }
+                                ],
+                                xAxis: [
+                                    {
+                                        type: 'category',
+                                        data: data.categoryData,
+                                        boundaryGap: false,
+                                        axisLine: { onZero: false },
+                                        splitLine: { show: false },
+                                        min: 'dataMin',
+                                        max: 'dataMax',
+                                        axisPointer: {
+                                            z: 100
+                                        }
+                                    },
+                                    {
+                                        type: 'category',
+                                        gridIndex: 1,
+                                        data: data.categoryData,
+                                        boundaryGap: false,
+                                        axisLine: { onZero: false },
+                                        axisTick: { show: false },
+                                        splitLine: { show: false },
+                                        axisLabel: { show: false },
+                                        min: 'dataMin',
+                                        max: 'dataMax'
+                                    }
+                                ],
+                                yAxis: [
+                                    {
+                                        scale: true,
+                                        splitArea: {
+                                            show: true
+                                        }
+                                    },
+                                    {
+                                        scale: true,
+                                        gridIndex: 1,
+                                        splitNumber: 2,
+                                        axisLabel: { show: false },
+                                        axisLine: { show: false },
+                                        axisTick: { show: false },
+                                        splitLine: { show: false }
+                                    },
+
+                                ],
+                                dataZoom: [
+                                    {
+                                        type: 'inside',
+                                        xAxisIndex: [0, 1],
+                                        start: 98,
+                                        end: 100
+                                    },
+                                    {
+                                        show: true,
+                                        xAxisIndex: [0, 1],
+                                        type: 'slider',
+                                        top: '85%',
+                                        start: 98,
+                                        end: 100
+                                    }
+                                ],
+                                // visualMap: [
+                                //     {
+                                //         type: "piecewise",
+                                //         show: true,
+                                //         seriesIndex: 2,
+                                //         dimension: 2,
+                                //         pieces: [
+                                //             {
+                                //                 value: 1,
+                                //                 color: '#ec0000',
+                                //                 backgroundColor: "#ec0000",
+                                //                 opacity: 1
+
+                                //             },
+                                //             {
+                                //                 value: -1,
+                                //                 color: "#00da3c",
+                                //                 backgroundColor: "#00da3c",
+                                //                 opacity: 1
+                                //             }
+                                //         ]
+                                //     },
+                                //     {
+                                //         show: true,
+                                //         seriesIndex: 3,
+                                //         dimension: 2,
+                                //         pieces: [
+                                //             {
+                                //                 value: 1,
+                                //                 color: '#ec0000'
+
+                                //             },
+                                //             {
+                                //                 value: -1,
+                                //                 color: "#00da3c"
+                                //             }
+                                //         ]
+                                //     }],
                                 series: [
                                     {
-                                        name: 'price',
-                                        data: this.price,
-                                        type: 'line'
+                                        name: 'Dow-Jones index',
+                                        type: 'line',
+                                        // type: 'candlestick',
+                                        data: data.values,
+                                        itemStyle: {
+                                            color: upColor,
+                                            color0: downColor,
+                                            borderColor: undefined,
+                                            borderColor0: undefined
+                                        },
+                                        tooltip: {
+                                            formatter: function (param) {
+                                                param = param[0];
+                                                return [
+                                                    'Date: ' + param.name + '<hr size=1 style="margin: 3px 0">',
+                                                    'Open: ' + param.data[0] + '<br/>',
+                                                    'Close: ' + param.data[1] + '<br/>',
+                                                    'Lowest: ' + param.data[2] + '<br/>',
+                                                    'Highest: ' + param.data[3] + '<br/>'
+                                                ].join('');
+                                            }
+                                        }
+                                    },
+                                    // {
+                                    //     name: 'MA20',
+                                    //     type: 'line',
+                                    //     data: calculateMA(20, data),
+                                    //     smooth: true,
+                                    //     lineStyle: {
+                                    //         opacity: 0.5
+                                    //     }
+                                    // },
+                                    {
+                                        name: 'SAR',
+                                        type: 'scatter',
+                                        data: sar(data),
+                                    },
+                                    // {
+                                    //     name: '12EMA',
+                                    //     type: 'line',
+                                    //     xAxisIndex: 1,
+                                    //     yAxisIndex: 1,
+                                    //     data: xEMA(data.values, 12)
+                                    // },
+                                    // {
+                                    //     name: '26EMA',
+                                    //     type: 'line',
+                                    //     xAxisIndex: 1,
+                                    //     yAxisIndex: 1,
+                                    //     data: xEMA(data.values, 26)
+                                    // },
+                                    {
+                                        name: 'DIF',
+                                        type: 'bar',
+                                        xAxisIndex: 1,
+                                        yAxisIndex: 1,
+                                        data: MACD(data.values).DIF
                                     },
                                     {
-                                        name: 'day5',
-
-                                        data: this.day5,
-                                        type: 'line'
+                                        name: 'xMACD',
+                                        type: 'line',
+                                        xAxisIndex: 1,
+                                        yAxisIndex: 1,
+                                        data: MACD(data.values).xMACD
                                     },
-                                    {
-                                        name: 'day20',
-
-                                        data: this.day20,
-                                        type: 'line'
-                                    },
-                                    {
-                                        name: 'day80',
-                                        data: this.day80,
-                                        type: 'line'
-                                    }
-                                    ,
-                                    {
-                                        name: 'buyday',
-                                        data: this.buyday,
-                                        type: 'line'
-                                    }
                                 ]
                             };
-                            option && myChart.setOption(option);
                         },
                         changeDate() {
                             if (this.input == "") this.input = "5871";
@@ -244,7 +425,7 @@ hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh -->
                                 }
                             })
                         },
-                        next(n) {                         
+                        next(n) {
                             if (n == 'left') {
                                 if (stockName.indexOf(this.stockNum) + 1 >= stockName.length) {
                                     this.stockNum = stockName[stockName.indexOf(this.stockNum)];
@@ -283,11 +464,151 @@ hhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhhh -->
                                     console.log(returndata);
                                 }
                             });
-                            
+
 
                         }
                     },
                 })
+ 
+                function splitData(rawData) {
+                    let categoryData = [];
+                    let values = [];
+                    let volumes = [];
+                    let endprice = [];
+                    for (let i = 0; i < rawData.length; i++) {
+                        categoryData.push(rawData[i].splice(0, 1)[0]);
+                        values.push(rawData[i]);
+                        endprice.push(rawData[i][1]);
+                        volumes.push([i, rawData[i][4], rawData[i][0] > rawData[i][1] ? 1 : -1]);
+                    }
+                    return {
+                        categoryData: categoryData,
+                        values: values,
+                        volumes: volumes,
+                        endprice: endprice
+                    };
+                }
+                function calculateMA(dayCount, data) {
+                    var result = [];
+                    for (var i = 0, len = data.values.length; i < len; i++) {
+                        if (i < dayCount) {
+                            result.push('-');
+                            continue;
+                        }
+                        var sum = 0;
+                        for (var j = 0; j < dayCount; j++) {
+                            sum += data.values[i - j][1];
+                        }
+                        result.push(+(sum / dayCount).toFixed(3));
+                    }
+                    return result;
+                }
+                function sar(data) {
+                    //open ,close ,l,h
+                    //sar = sar + 0.2 * (nav - sar)      
+                    let isUP = true;
+                    let nav = data.values[0][3];//最高價
+                    let sar = data.values[0][1];
+                    let AF = 0.02;
+                    let color = 1;
+                    let list = [];
+                    let val = data.values;
+                    //oclh
+                    for (let i = 0; i < data.values.length; i++) {
+                        if (isUP) {
+                            color = 1;
+                            if (val[i][3] > nav) {
+                                nav = val[i][3];
+                                if (AF < 0.2) {
+                                    AF = AF + 0.01
+                                }
+                            }
+                            sar = sar + AF * (nav - sar);
+                            //收盤 跌破sar
+                            if (sar > val[i][2]) {
+                                color = -1;
+                                isUP = false;
+                                AF = 0.02;
+                                for (let j = 0; j < 20; j++) {
+                                    let ins = (i - j);
+                                    if (ins < 0) ins = 0;
+                                    if (sar < val[ins][3]) {
+                                        sar = val[ins][3];
+                                    }
+                                }
+                                nav = val[i][2];
+                            }
+                        } else {
+                            color = -1;
+                            if (val[i][2] < nav) {
+                                nav = val[i][2];
+                                if (AF < 0.2) {
+                                    AF = AF + 0.01
+                                }
+                            }
+                            sar = sar - AF * (sar - nav);
+                            //收盤 長破sar
+                            if (sar < val[i][3]) {
+                                color = 1;
+                                isUP = true;
+                                AF = 0.02;
+                                for (let j = 0; j < 20; j++) {
+                                    let ins = (i - j);
+                                    if (ins < 0) ins = 0;
+                                    if (sar > val[ins][2]) {
+                                        sar = val[ins][2];
+                                    }
+                                }
+                                nav = val[i][3];
+                            }
+                        }
+                        sar = Math.round(sar * 100) / 100;
+                        list.push([data.categoryData[i], sar, color]);
+                    }
+                    console.log("==Sar==")           
+                    return list;
+
+                }
+                function xEMA(data, n) {
+                    let nEMA = [];
+                    nEMA.push(0.0);
+                    for (let i = 1; i < data.length; i++) {
+                        nEMA.push(double2((nEMA[i - 1] * (n - 1) + data[i][1] * 2) / (n + 1)));
+                    }
+                    return nEMA;
+                }
+
+                function MACD(data) {
+                    console.log("macd")
+                    //open ,close ,l,h
+                    //nEMA=(前一日nEMA*(n-1)＋今日收盤價×2)/(n+1)  
+                    let DIF = [];             
+                    let nEMA = xEMA(data, 12);                    
+                    let mEMA = xEMA(data, 26);
+                    // DIF=nEMA－mEMA
+                    console.log(nEMA)
+                    console.log(mEMA)
+                    for (let i = 0; i < data.length; i++) {
+                        DIF.push(double2(nEMA[i] - mEMA[i]));
+                    }
+                    console.log("========")
+                    // xMACD=(前一日xMACD*(x-1)＋DIF×2)/(x+1)
+                    let xMACD = [];
+                    xMACD.push(0.0);
+                    for (let i = 1; i < data.length; i++) {
+                        xMACD.push(double2((xMACD[i - 1] * (9 - 1) + DIF[i] * 2) / (9 + 1)));
+                    }
+                    console.log("========")
+                    for (let i = 0; i < data.length; i++) {
+                        DIF[i] = double2(DIF[i] - xMACD[i]);
+                    }
+                    console.log("macd888")
+                    return { 'nEMA': nEMA, 'mEMA': mEMA, 'DIF': DIF, "xMACD": xMACD };
+                }
+                function double2(n) {               
+                    return Math.round(n * 100) / 100;
+                }
+
             </script>
 
         </body>
