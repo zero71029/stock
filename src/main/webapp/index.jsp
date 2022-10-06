@@ -31,9 +31,9 @@
                     <el-button type="primary" icon="el-icon-arrow-left" size="small" @click="next('right')"></el-button>
                     <el-input v-model="stockNum" placeholder="请输入内容" list="browsers" style="width: 170px;"></el-input>
                     <datalist id="browsers">
-                      
-                            <option  v-for="(s, index) in stock" :key="index"    :value="s.num">{{s.name}}</option>
-                   
+
+                        <option v-for="(s, index) in stock" :key="index" :value="s.num">{{s.name}}</option>
+
                     </datalist>
                     <el-button type="primary" icon="el-icon-arrow-right" size="small" @click="next('left')"></el-button>
                     <br><br>
@@ -44,7 +44,7 @@
                     </el-select>
                     <el-button type="primary" @click="clickStock">送出</el-button>
                     <br>
-                    
+
                     <div id="main" style="width: 100%;height:50vh;"></div>
                     <div v-show="yes != ''">
                         成功 = {{yes}} 次<br>
@@ -57,14 +57,12 @@
             </div>
 
             <script>
-                var stockName  = [];
-                const stock = ${stockName};
+                var stockName = [];
+                const stock = ${ stockName };
                 console.log(stock);
                 stock.forEach(element => {
                     stockName.push(element.num);
                 });
-
-
                 const upColor = '#ec0000';
                 const downColor = '#00da3c';
                 // 2207 :473
@@ -76,7 +74,7 @@
                     el: ".app",
                     data() {
                         return {
-                            stock:stock,
+                            stock: stock,
                             stockNum: "2330",
                             norm: "sar",
                             yes: "",
@@ -309,49 +307,47 @@
                                         end: 100
                                     }
                                 ],
-                                // visualMap: [
-                                //     {
-                                //         type: "piecewise",
-                                //         show: true,
-                                //         seriesIndex: 2,
-                                //         dimension: 2,
-                                //         pieces: [
-                                //             {
-                                //                 value: 1,
-                                //                 color: '#ec0000',
-                                //                 backgroundColor: "#ec0000",
-                                //                 opacity: 1
-
-                                //             },
-                                //             {
-                                //                 value: -1,
-                                //                 color: "#00da3c",
-                                //                 backgroundColor: "#00da3c",
-                                //                 opacity: 1
-                                //             }
-                                //         ]
-                                //     },
-                                //     {
-                                //         show: true,
-                                //         seriesIndex: 3,
-                                //         dimension: 2,
-                                //         pieces: [
-                                //             {
-                                //                 value: 1,
-                                //                 color: '#ec0000'
-
-                                //             },
-                                //             {
-                                //                 value: -1,
-                                //                 color: "#00da3c"
-                                //             }
-                                //         ]
-                                //     }],
+                                visualMap: [
+                                    {
+                                        type: "piecewise",
+                                        show: true,
+                                        seriesIndex: 0,
+                                        dimension: 2,
+                                        pieces: [
+                                            {
+                                                value: 1,
+                                                color: '#ec0000',
+                                                backgroundColor: "#ec0000",
+                                                opacity: 1
+                                            },
+                                            {
+                                                value: -1,
+                                                color: "#00da3c",
+                                                backgroundColor: "#00da3c",
+                                                opacity: 1
+                                            }
+                                        ]
+                                    },
+                                    {
+                                        show: true,
+                                        seriesIndex: 2,
+                                        dimension: 2,
+                                        pieces: [
+                                            {
+                                                value: 1,
+                                                color: '#ec0000'
+                                            },
+                                            {
+                                                value: -1,
+                                                color: "#00da3c"
+                                            }
+                                        ]
+                                    }],
                                 series: [
                                     {
                                         name: 'Dow-Jones index',
-                                        type: 'line',
-                                        // type: 'candlestick',
+                                        // type: 'line',
+                                        type: 'candlestick',
                                         data: data.values,
                                         itemStyle: {
                                             color: upColor,
@@ -379,9 +375,6 @@
                                         yAxisIndex: 1,
                                         data: data.volumes
                                     },
-
-
-
                                     // {
                                     //     name: '12EMA',
                                     //     type: 'line',
@@ -453,6 +446,7 @@
                                     this.stockNum = stockName[stockName.indexOf(this.stockNum) - 1];
                                 }
                             }
+                            //取買賣結果
                             $.ajax({
                                 url: '${pageContext.request.contextPath}/calculationResults',
                                 type: 'POST',
@@ -475,6 +469,7 @@
                                     console.log(returndata);
                                 }
                             });
+                            //取畫圖資料
                             $.ajax({
                                 url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
                                 type: 'POST',
@@ -487,12 +482,9 @@
                                     this.char(this.option);
                                 }
                             })
-
-
                         }
                     },
                 })
-
                 function splitData(rawData) {
                     let categoryData = [];
                     let values = [];
@@ -590,7 +582,6 @@
                     }
                     console.log("==Sar==")
                     return list;
-
                 }
                 function xEMA(data, n) {
                     let nEMA = [];
@@ -600,7 +591,6 @@
                     }
                     return nEMA;
                 }
-
                 function MACD(data) {
                     console.log("macd")
                     //open ,close ,l,h
@@ -631,9 +621,7 @@
                 function double2(n) {
                     return Math.round(n * 100) / 100;
                 }
-
             </script>
-
         </body>
 
         </html>
