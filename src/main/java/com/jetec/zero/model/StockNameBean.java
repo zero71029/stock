@@ -47,10 +47,10 @@ public class StockNameBean {
 
     @Override
     public String toString() {
-        return "StockNameBean{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", num='" + num + '\'' +
+        return "{" +
+                "id:'" + id + '\'' +
+                ", name:'" + name + '\'' +
+                ", num:'" + num + '\'' +
                 '}';
     }
 }

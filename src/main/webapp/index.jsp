@@ -18,55 +18,53 @@
             <script src="${pageContext.request.contextPath}/js/element-ui.js"></script>
             <script src="${pageContext.request.contextPath}/js/zh-TW.js"></script>
             <script src="${pageContext.request.contextPath}/js/echarts.min.js"></script>
+            <style>
+                [v-cloak] {
+                    display: none;
+                }
+            </style>
         </head>
 
         <body>
-
             <div class="app">
-                <el-button type="primary" icon="el-icon-arrow-left" size="small" @click="next('right')"></el-button>
-
-                <el-input v-model="stockNum" placeholder="请输入内容" list="browsers" style="width: 170px;"></el-input>
-                <datalist id="browsers">
-                    <c:forEach varStatus="loop" begin="0" end="${stockName.size()-1}" items="${stockName}" var="s">
-                        <option value="${s}"></option>
-                    </c:forEach>
-                </datalist>
-                <el-button type="primary" icon="el-icon-arrow-right" size="small" @click="next('left')"></el-button>
-                <br><br>
-                <el-select v-model="norm" placeholder="指標">
-                    <el-option label="SAR" value="sar"></el-option>
-                    <el-option label="三平均線" value="avg"></el-option>
-                    <!-- <el-option  label="RSI" value="rsi"></el-option> -->
-                </el-select>
-                <el-button type="primary" @click="clickStock">送出</el-button>
-                <br>
-                <div id="main" style="width: 100%;height:900px;">圖所在</div>
-                <div v-show="yes != ''">
-                    成功 = {{yes}} 次<br>
-                    失敗 = {{err}} 次<br>
-                    成功率 {{rate}}%<br>
-                    結算 = {{total}}<br>
+                <div v-cloak>
+                    <el-button type="primary" icon="el-icon-arrow-left" size="small" @click="next('right')"></el-button>
+                    <el-input v-model="stockNum" placeholder="请输入内容" list="browsers" style="width: 170px;"></el-input>
+                    <datalist id="browsers">
+                      
+                            <option  v-for="(s, index) in stock" :key="index"    :value="s.num">{{s.name}}</option>
+                   
+                    </datalist>
+                    <el-button type="primary" icon="el-icon-arrow-right" size="small" @click="next('left')"></el-button>
+                    <br><br>
+                    <el-select v-model="norm" placeholder="指標">
+                        <el-option label="SAR" value="sar"></el-option>
+                        <el-option label="三平均線" value="avg"></el-option>
+                        <!-- <el-option  label="RSI" value="rsi"></el-option> -->
+                    </el-select>
+                    <el-button type="primary" @click="clickStock">送出</el-button>
+                    <br>
+                    
+                    <div id="main" style="width: 100%;height:50vh;"></div>
+                    <div v-show="yes != ''">
+                        成功 = {{yes}} 次<br>
+                        失敗 = {{err}} 次<br>
+                        成功率 {{rate}}%<br>
+                        結算 = {{total}}<br>
+                    </div>
+                    <div v-for="(s, index) in process" :key="index">{{s}}</div>
                 </div>
-                <div v-for="(s, index) in process" :key="index">{{s}}</div>
-
-
-                <!-- <el-date-picker v-model="start" type="date" placeholder="选择日期" value-format="yyyy-MM-dd"
-        :picker-options="pickerOptions">
-    </el-date-picker>
-
-    <el-date-picker v-model="end" type="date" placeholder="选择日期" value-format="yyyy-MM-dd"
-        :picker-options="pickerOptions">...
-    </el-date-picker> -->
-
-
             </div>
-            <script>let stockName = [];</script>
 
-
-            <c:forEach varStatus="loop" begin="0" end="${stockName.size()-1}" items="${stockName}" var="s">
-                <script>stockName.push('${s}');</script>
-            </c:forEach>
             <script>
+                var stockName  = [];
+                const stock = ${stockName};
+                console.log(stock);
+                stock.forEach(element => {
+                    stockName.push(element.num);
+                });
+
+
                 const upColor = '#ec0000';
                 const downColor = '#00da3c';
                 // 2207 :473
@@ -78,6 +76,7 @@
                     el: ".app",
                     data() {
                         return {
+                            stock:stock,
                             stockNum: "2330",
                             norm: "sar",
                             yes: "",
@@ -298,7 +297,7 @@
                                     {
                                         type: 'inside',
                                         xAxisIndex: [0, 1],
-                                        start: 98,
+                                        start: 95,
                                         end: 100
                                     },
                                     {
@@ -306,7 +305,7 @@
                                         xAxisIndex: [0, 1],
                                         type: 'slider',
                                         top: '85%',
-                                        start: 98,
+                                        start: 95,
                                         end: 100
                                     }
                                 ],
@@ -415,7 +414,7 @@
                             };
                         },
                         changeDate() {
-                            if (this.input == "") this.input = "5871";
+                            if (this.input == "") this.input = "2330";
                             let data = "start=" + this.start + "&end=" + this.end;
                             $.ajax({
                                 url: '${pageContext.request.contextPath}/selectStock/' + this.input,
@@ -454,7 +453,6 @@
                                     this.stockNum = stockName[stockName.indexOf(this.stockNum) - 1];
                                 }
                             }
-
                             $.ajax({
                                 url: '${pageContext.request.contextPath}/calculationResults',
                                 type: 'POST',
@@ -471,14 +469,12 @@
                                         this.rate = response.data.rate;//
                                         this.process = response.data.buyDay;
                                     }
-
                                     if (response.code == 500) this.$message.error(response.message);
                                 },
                                 error: function (returndata) {
                                     console.log(returndata);
                                 }
                             });
-
                             $.ajax({
                                 url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
                                 type: 'POST',
