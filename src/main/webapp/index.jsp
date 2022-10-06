@@ -20,7 +20,7 @@
             <script src="${pageContext.request.contextPath}/js/echarts.min.js"></script>
         </head>
 
-        <body>           
+        <body>
 
             <div class="app">
                 <el-button type="primary" icon="el-icon-arrow-left" size="small" @click="next('right')"></el-button>
@@ -34,8 +34,8 @@
                 <el-button type="primary" icon="el-icon-arrow-right" size="small" @click="next('left')"></el-button>
                 <br><br>
                 <el-select v-model="norm" placeholder="指標">
-                    <el-option label="三平均線" value="avg"></el-option>
                     <el-option label="SAR" value="sar"></el-option>
+                    <el-option label="三平均線" value="avg"></el-option>
                     <!-- <el-option  label="RSI" value="rsi"></el-option> -->
                 </el-select>
                 <el-button type="primary" @click="clickStock">送出</el-button>
@@ -79,7 +79,7 @@
                     data() {
                         return {
                             stockNum: "2330",
-                            norm: "avg",
+                            norm: "sar",
                             yes: "",
                             err: "",
                             total: "",
@@ -96,21 +96,21 @@
                             day80: [],
                             buyday: [],
                             xAxis: [],
-                            option:{},
+                            option: {},
                         }
                     },
                     created() {
-                        $.ajax({
-                            url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
-                            type: 'POST',
-                            async: false,//同步請求
-                            cache: false,//不快取頁面
-                            success: rawData => {                              
-                                var data = splitData(rawData);
-                                console.log(data);
-                                this.option = this.setOption(data);                                                                                     
-                            }
-                        })
+                        // $.ajax({
+                        //     url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
+                        //     type: 'POST',
+                        //     async: false,//同步請求
+                        //     cache: false,//不快取頁面
+                        //     success: rawData => {                              
+                        //         var data = splitData(rawData);
+                        //         console.log(data);
+                        //         this.option = this.setOption(data);                                                                                     
+                        //     }
+                        // })
                     },
                     mounted() {
                         // this.char(this.option);
@@ -145,17 +145,17 @@
                                 }
                             });
                             $.ajax({
-                            url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
-                            type: 'POST',
-                            async: false,//同步請求
-                            cache: false,//不快取頁面
-                            success: rawData => {                              
-                                var data = splitData(rawData);
-                                console.log(data);
-                                this.option = this.setOption(data);
-                                this.char(this.option);                                                         
-                            }
-                        })
+                                url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
+                                type: 'POST',
+                                async: false,//同步請求
+                                cache: false,//不快取頁面
+                                success: rawData => {
+                                    var data = splitData(rawData);
+                                    console.log(data);
+                                    this.option = this.setOption(data);
+                                    this.char(this.option);
+                                }
+                            })
                         },
                         char(option) {
                             let myChart = echarts.init(document.getElementById('main'), 'dark');
@@ -164,6 +164,24 @@
                         },
                         setOption(data) {
                             console.log(data);
+                            let picture;
+                            if (this.norm == 'sar') {
+                                picture = {
+                                    name: 'SAR',
+                                    type: 'scatter',
+                                    data: sar(data),
+                                };
+                            } else {
+                                picture = {
+                                    name: 'MA20',
+                                    type: 'line',
+                                    data: calculateMA(20, data),
+                                    smooth: true,
+                                    lineStyle: {
+                                        opacity: 0.5
+                                    }
+                                };
+                            }
                             return {
                                 animation: false,
                                 legend: {
@@ -354,21 +372,17 @@
                                                 ].join('');
                                             }
                                         }
-                                    },
-                                    // {
-                                    //     name: 'MA20',
-                                    //     type: 'line',
-                                    //     data: calculateMA(20, data),
-                                    //     smooth: true,
-                                    //     lineStyle: {
-                                    //         opacity: 0.5
-                                    //     }
-                                    // },
+                                    }, picture,
                                     {
-                                        name: 'SAR',
-                                        type: 'scatter',
-                                        data: sar(data),
+                                        name: 'Volume',
+                                        type: 'bar',
+                                        xAxisIndex: 1,
+                                        yAxisIndex: 1,
+                                        data: data.volumes
                                     },
+
+
+
                                     // {
                                     //     name: '12EMA',
                                     //     type: 'line',
@@ -383,20 +397,20 @@
                                     //     yAxisIndex: 1,
                                     //     data: xEMA(data.values, 26)
                                     // },
-                                    {
-                                        name: 'DIF',
-                                        type: 'bar',
-                                        xAxisIndex: 1,
-                                        yAxisIndex: 1,
-                                        data: MACD(data.values).DIF
-                                    },
-                                    {
-                                        name: 'xMACD',
-                                        type: 'line',
-                                        xAxisIndex: 1,
-                                        yAxisIndex: 1,
-                                        data: MACD(data.values).xMACD
-                                    },
+                                    // {
+                                    //     name: 'DIF',
+                                    //     type: 'bar',
+                                    //     xAxisIndex: 1,
+                                    //     yAxisIndex: 1,
+                                    //     data: MACD(data.values).DIF
+                                    // },
+                                    // {
+                                    //     name: 'xMACD',
+                                    //     type: 'line',
+                                    //     xAxisIndex: 1,
+                                    //     yAxisIndex: 1,
+                                    //     data: MACD(data.values).xMACD
+                                    // },
                                 ]
                             };
                         },
@@ -465,11 +479,24 @@
                                 }
                             });
 
+                            $.ajax({
+                                url: '${pageContext.request.contextPath}/stock-DJI.json?name=' + this.stockNum,
+                                type: 'POST',
+                                async: false,//同步請求
+                                cache: false,//不快取頁面
+                                success: rawData => {
+                                    var data = splitData(rawData);
+                                    console.log(data);
+                                    this.option = this.setOption(data);
+                                    this.char(this.option);
+                                }
+                            })
+
 
                         }
                     },
                 })
- 
+
                 function splitData(rawData) {
                     let categoryData = [];
                     let values = [];
@@ -565,7 +592,7 @@
                         sar = Math.round(sar * 100) / 100;
                         list.push([data.categoryData[i], sar, color]);
                     }
-                    console.log("==Sar==")           
+                    console.log("==Sar==")
                     return list;
 
                 }
@@ -582,8 +609,8 @@
                     console.log("macd")
                     //open ,close ,l,h
                     //nEMA=(前一日nEMA*(n-1)＋今日收盤價×2)/(n+1)  
-                    let DIF = [];             
-                    let nEMA = xEMA(data, 12);                    
+                    let DIF = [];
+                    let nEMA = xEMA(data, 12);
                     let mEMA = xEMA(data, 26);
                     // DIF=nEMA－mEMA
                     console.log(nEMA)
@@ -605,7 +632,7 @@
                     console.log("macd888")
                     return { 'nEMA': nEMA, 'mEMA': mEMA, 'DIF': DIF, "xMACD": xMACD };
                 }
-                function double2(n) {               
+                function double2(n) {
                     return Math.round(n * 100) / 100;
                 }
 

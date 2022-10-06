@@ -18,6 +18,6 @@ public interface StockRepository extends JpaRepository<StockBean,String> {
     List<StockBean> findByNameAndStockdayBetween(String s, String start, String end, Sort stockday);
 
 
-    @Query(value = "select name  from stock s where name BETWEEN '1000' and '9999'    group by name  having count(name) > 500;", nativeQuery=true)
+    @Query(value = "select name  from stock s    group by name  having count(name) > 500;", nativeQuery=true)
     List<String> getStorkName();
 }
