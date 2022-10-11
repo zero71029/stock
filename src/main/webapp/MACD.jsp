@@ -403,10 +403,15 @@
                     }
                 }
                 sar = Math.round(sar * 100) / 100;
+                
                 list.push([data.categoryData[i], sar, color]);
             }
             console.log("==Sar==")
-            console.log(list)
+            console.log(list);
+         
+
+
+
             return list;
 
         }

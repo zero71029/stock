@@ -31,20 +31,20 @@
                     <el-button type="primary" icon="el-icon-arrow-left" size="small" @click="next('right')"></el-button>
                     <el-input v-model="stockNum" placeholder="请输入内容" list="browsers" style="width: 170px;"></el-input>
                     <datalist id="browsers">
-                      
-                            <option  v-for="(s, index) in stock" :key="index"    :value="s.num">{{s.name}}</option>
-                   
+
+                        <option v-for="(s, index) in stock" :key="index" :value="s.num">{{s.name}}</option>
+
                     </datalist>
                     <el-button type="primary" icon="el-icon-arrow-right" size="small" @click="next('left')"></el-button>
                     <br><br>
-                    <el-select v-model="norm" placeholder="指標">
+                    <el-select v-model="norm" placeholder="指標" @change="clickStock">
                         <el-option label="SAR" value="sar"></el-option>
                         <el-option label="三平均線" value="avg"></el-option>
                         <!-- <el-option  label="RSI" value="rsi"></el-option> -->
                     </el-select>
                     <el-button type="primary" @click="clickStock">送出</el-button>
                     <br>
-                    
+
                     <div id="main" style="width: 100%;height:50vh;"></div>
                     <div v-show="yes != ''">
                         成功 = {{yes}} 次<br>
@@ -57,8 +57,8 @@
             </div>
 
             <script>
-                var stockName  = [];
-                const stock = ${stockName};
+                var stockName = [];
+                const stock = ${ stockName };
                 console.log(stock);
                 stock.forEach(element => {
                     stockName.push(element.num);
@@ -74,7 +74,7 @@
                     el: ".app",
                     data() {
                         return {
-                            stock:stock,
+                            stock: stock,
                             stockNum: "2330",
                             norm: "sar",
                             yes: "",
@@ -88,11 +88,6 @@
                             end: "",
                             currentPage: 1,
                             pageSize: 20,
-                            day20: [],
-                            day5: [],
-                            day80: [],
-                            buyday: [],
-                            xAxis: [],
                             option: {},
                         }
                     },
@@ -162,6 +157,8 @@
                         setOption(data) {
                             console.log(data);
                             let picture;
+                            let picture2;
+                            let picture3;
                             if (this.norm == 'sar') {
                                 picture = {
                                     name: 'SAR',
@@ -170,9 +167,27 @@
                                 };
                             } else {
                                 picture = {
+                                    name: 'MA5',
+                                    type: 'line',
+                                    data: calculateMA(5, data),
+                                    smooth: true,
+                                    lineStyle: {
+                                        opacity: 0.5
+                                    }
+                                };
+                                picture2 = {
                                     name: 'MA20',
                                     type: 'line',
                                     data: calculateMA(20, data),
+                                    smooth: true,
+                                    lineStyle: {
+                                        opacity: 0.5
+                                    }
+                                };
+                                picture3 = {
+                                    name: 'MA60',
+                                    type: 'line',
+                                    data: calculateMA(60, data),
                                     smooth: true,
                                     lineStyle: {
                                         opacity: 0.5
@@ -233,7 +248,6 @@
                                         colorAlpha: 0.1
                                     }
                                 },
-
                                 grid: [
                                     {
                                         left: '10%',
@@ -319,7 +333,6 @@
                                                 color: '#ec0000',
                                                 backgroundColor: "#ec0000",
                                                 opacity: 1
-
                                             },
                                             {
                                                 value: -1,
@@ -337,7 +350,6 @@
                                             {
                                                 value: 1,
                                                 color: '#ec0000'
-
                                             },
                                             {
                                                 value: -1,
@@ -348,8 +360,8 @@
                                 series: [
                                     {
                                         name: 'Dow-Jones index',
-                                        // type: 'line',
-                                        type: 'candlestick',
+                                        type: 'line',
+                                        // type: 'candlestick',
                                         data: data.values,
                                         itemStyle: {
                                             color: upColor,
@@ -369,14 +381,15 @@
                                                 ].join('');
                                             }
                                         }
-                                    }, picture,
-                                    {
+                                    }, {
                                         name: 'Volume',
                                         type: 'bar',
                                         xAxisIndex: 1,
                                         yAxisIndex: 1,
                                         data: data.volumes
-                                    },
+                                    }, picture
+                                    , picture2
+                                    , picture3,
                                     // {
                                     //     name: '12EMA',
                                     //     type: 'line',
@@ -408,31 +421,7 @@
                                 ]
                             };
                         },
-                        changeDate() {
-                            if (this.input == "") this.input = "2330";
-                            let data = "start=" + this.start + "&end=" + this.end;
-                            $.ajax({
-                                url: '${pageContext.request.contextPath}/selectStock/' + this.input,
-                                type: 'POST',
-                                data: data,
-                                async: false,
-                                cache: false,
-                                success: (response => {
-                                    this.list = response;
-                                    this.day5 = response.day5;
-                                    this.day20 = response.day20;
-                                    this.day80 = response.day80;
-                                    this.buyday = response.buyday;
-                                    this.xAxis = response.xAxis;
-                                    this.price = response.price;
-                                    console.log(response);
-                                    this.char();
-                                }),
-                                error: function (returndata) {
-                                    console.log(returndata);
-                                }
-                            })
-                        },
+      
                         next(n) {
                             if (n == 'left') {
                                 if (stockName.indexOf(this.stockNum) + 1 >= stockName.length) {
@@ -487,7 +476,6 @@
                         }
                     },
                 })
-
                 function splitData(rawData) {
                     let categoryData = [];
                     let values = [];
@@ -535,18 +523,19 @@
                     for (let i = 0; i < data.values.length; i++) {
                         if (isUP) {
                             color = 1;
-                            if (val[i][3] > nav) {
+                            if (val[i][3] > nav) {  
                                 nav = val[i][3];
                                 if (AF < 0.2) {
-                                    AF = AF + 0.01
+                                    AF = AF + 0.01;
                                 }
                             }
                             sar = sar + AF * (nav - sar);
                             //收盤 跌破sar
-                            if (sar > val[i][2]) {
+                            if (sar > val[i][1]) {
                                 color = -1;
                                 isUP = false;
                                 AF = 0.02;
+
                                 for (let j = 0; j < 20; j++) {
                                     let ins = (i - j);
                                     if (ins < 0) ins = 0;
@@ -566,7 +555,7 @@
                             }
                             sar = sar - AF * (sar - nav);
                             //收盤 長破sar
-                            if (sar < val[i][3]) {
+                            if (sar < val[i][1]) {
                                 color = 1;
                                 isUP = true;
                                 AF = 0.02;
@@ -581,11 +570,11 @@
                             }
                         }
                         sar = Math.round(sar * 100) / 100;
-                        list.push([data.categoryData[i], sar, color]);
+                        list.push([data.categoryData[i], sar, color,val[i][1]]);
                     }
                     console.log("==Sar==")
+                    console.log(list)
                     return list;
-
                 }
                 function xEMA(data, n) {
                     let nEMA = [];
@@ -595,7 +584,6 @@
                     }
                     return nEMA;
                 }
-
                 function MACD(data) {
                     console.log("macd")
                     //open ,close ,l,h
@@ -628,4 +616,5 @@
                 }
             </script>
         </body>
+
         </html>

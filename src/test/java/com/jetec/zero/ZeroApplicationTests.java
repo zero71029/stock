@@ -88,7 +88,7 @@ class ZeroApplicationTests {
     void sar() {
         Map<String, Long> ratelist = new HashMap<>();
 
-        String s = "2303";
+        String s = "2330";
 
         System.out.println(s);
 
@@ -98,7 +98,7 @@ class ZeroApplicationTests {
         ratelist.put(s, (Long) as.sarResult(sarList).get("total"));
 
         ratelist.forEach((a, o) -> {
-            if (o > 300)
+
                 System.out.println(a + " :" + o);
         });
         System.out.println(sarList.get(sarList.size()-2));

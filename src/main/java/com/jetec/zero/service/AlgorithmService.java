@@ -31,17 +31,25 @@ public class AlgorithmService {
         double sar = list.get(0).getLowestprice();
         double aF = 0.02;
         //幾天最高
-        int daycount = 20;
+        int daycount = 10;
         boolean up = true;
         List<SarBean> sarList = new ArrayList<>(list.size());
         for (int i = 0; i < list.size(); i++) {
             SarBean bean = new SarBean();
             if (up) {
+                if (list.get(i).getHightprice() > nav) {
+                    nav = list.get(i).getHightprice();
+                    if (aF <= 0.2) {
+                        aF = aF + 0.01;
+                    }
+                }
+                sar =double2(sar + aF * (nav - sar))    ;
+
                 //變盤
                 if (sar > list.get(i).getEndprice()) {
                     up = false;
                     aF = 0.02;
-                    sar = list.get(i).getHightprice();
+//                    sar = list.get(i).getHightprice();
                     for (int j = 0; j < daycount; j++) {
                         int in = i - j;
                         if (in < 0) {
@@ -54,34 +62,28 @@ public class AlgorithmService {
                     nav = list.get(i).getLowestprice();
                 }
 
-                if (list.get(i).getHightprice() > nav) {
-                    nav = list.get(i).getHightprice();
-                    if (aF < 0.2) {
-                        aF = aF + 0.01;
-                    }
-                }
-                sar = sar + aF * (nav - sar);
+
+
                 bean.setSar(sar);
                 bean.setName(list.get(i).getName());
-                bean.setUP(true);
+                bean.setUP(up);
                 bean.setEndprice(list.get(i).getEndprice());
                 bean.setStockday(list.get(i).getStockday());
                 bean.setTransactiondate(list.get(i).getTransactiondate());
 
             } else {
-
                 if (list.get(i).getLowestprice() < nav) {
                     nav = list.get(i).getLowestprice();
                     if (aF < 0.2) {
                         aF = aF + 0.01;
                     }
                 }
-                sar = sar - aF * (sar - nav);
+                sar =double2(sar - aF * (sar - nav))    ;
                 //收盤 長破sar 變盤
                 if (sar < list.get(i).getEndprice()) {
                     up = true;
                     aF = 0.02;
-                    sar = list.get(i).getLowestprice();
+//                    sar = list.get(i).getLowestprice();
                     for (int j = 0; j < daycount; j++) {
                         int in = i - j;
                         if (in < 0) {
@@ -93,7 +95,7 @@ public class AlgorithmService {
                     }
                     nav = list.get(i).getHightprice();
                 }
-                bean.setUP(false);
+                bean.setUP(up);
                 bean.setSar(sar);
                 bean.setName(list.get(i).getName());
                 bean.setEndprice(list.get(i).getEndprice());
@@ -101,6 +103,15 @@ public class AlgorithmService {
                 bean.setTransactiondate(list.get(i).getTransactiondate());
             }
             sarList.add(bean);
+
+            for (SarBean sarBean : sarList) {
+                if ( sarBean.getStockday().compareTo("20220701") > 0    ){
+                    System.out.println(sarBean);
+                }
+
+            }
+
+
         }
         return sarList;
     }
@@ -188,6 +199,7 @@ public class AlgorithmService {
         }
         System.out.println("========放空sar===============");
         printResult(yes, err, total);
+
         return result;
 
     }
