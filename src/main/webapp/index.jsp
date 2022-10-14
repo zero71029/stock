@@ -152,7 +152,7 @@
                         char(option) {
                             let myChart = echarts.init(document.getElementById('main'), 'dark');
                             myChart.setOption(option, true);
-                            // myChart.dispose();
+                            myChart.dispose();
                         },
                         setOption(data) {
                             console.log(data);
@@ -421,7 +421,7 @@
                                 ]
                             };
                         },
-      
+
                         next(n) {
                             if (n == 'left') {
                                 if (stockName.indexOf(this.stockNum) + 1 >= stockName.length) {
@@ -523,7 +523,7 @@
                     for (let i = 0; i < data.values.length; i++) {
                         if (isUP) {
                             color = 1;
-                            if (val[i][3] > nav) {  
+                            if (val[i][3] > nav) {
                                 nav = val[i][3];
                                 if (AF < 0.2) {
                                     AF = AF + 0.01;
@@ -570,7 +570,7 @@
                             }
                         }
                         sar = Math.round(sar * 100) / 100;
-                        list.push([data.categoryData[i], sar, color,val[i][1]]);
+                        list.push([data.categoryData[i], sar, color, val[i][1]]);
                     }
                     console.log("==Sar==")
                     console.log(list)

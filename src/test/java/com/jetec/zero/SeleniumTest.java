@@ -7,6 +7,7 @@ import com.jetec.zero.Tool.ZeroTools;
 import com.jetec.zero.model.StockBean;
 import com.jetec.zero.repository.StockRepository;
 import com.jetec.zero.service.AlgorithmService;
+import com.jetec.zero.service.StockService;
 import okhttp3.ConnectionSpec;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -18,9 +19,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 import java.io.IOException;
+import java.sql.*;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @SpringBootTest
@@ -29,6 +32,9 @@ public class SeleniumTest {
     StockRepository sr;
     @Autowired
     AlgorithmService as;
+
+    @Autowired
+    StockService ss;
 
     @Test
     void everyday() {
@@ -111,6 +117,59 @@ public class SeleniumTest {
 
     }
 
+    @Test
+    void copyStock() {
+        try {
+            String s = "00663L";
+            List<StockBean> stock = ss.findByName(s);
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/zero?serverTimezone=Asia/Taipei", "root", "root");
+            //sql
+            //
+            String sql = "INSERT INTO stock(stock_id, name, stock_day, transaction_date, transactions_number, open_price," +
+                    "end_price, hight_price, lowest_price)"
+                    + "values(" + "?,?,?,?,?,?,?,?,?)";
+            for (StockBean g : stock) {
+                System.out.println(g);
+                //预编译
+                PreparedStatement ptmt = conn.prepareStatement(sql); //预编译SQL，减少sql执行
+
+                //传参
+                ptmt.setString(1, g.getStockid());
+                ptmt.setString(2, g.getName());
+                ptmt.setString(3, g.getStockday());
+                ptmt.setDate(4, Date.valueOf(g.getTransactiondate()));
+                ptmt.setInt(5, g.getTransactionsnumber());
+                ptmt.setDouble(6, g.getOpenprice());
+                ptmt.setDouble(7, g.getEndprice());
+                ptmt.setDouble(8, g.getHightprice());
+                ptmt.setDouble(9, g.getLowestprice());
+
+                //执行
+                ptmt.execute();
+            }
+
+
+//            StockBean g = stock.get(stock.size()-1);
+//            StockBean g = new StockBean();
+//            g.setStockid("eeee");
+//            g.setName("3652");
+//            g.setStockday("3256-55-55");
+//            g.setTransactiondate(LocalDate.of(2022,7,11));
+//            g.setOpenprice(3.5);
+//            g.setEndprice(3.5);
+//            g.setLowestprice(3.5);
+//            g.setHightprice(3.5);
+//            g.setTransactionsnumber(333333);
+
+//            Class.forName("com.mysql.jdbc.Driver");
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
+    }
 
 
 }

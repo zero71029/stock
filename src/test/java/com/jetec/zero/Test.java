@@ -3,6 +3,7 @@ package com.jetec.zero;
 
 import com.alibaba.fastjson.JSONObject;
 import com.jetec.zero.Tool.TrustAll;
+import com.jetec.zero.model.StockBean;
 import okhttp3.ConnectionSpec;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -15,8 +16,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 
 
 public class Test {
@@ -61,5 +61,29 @@ public class Test {
             obj = JSONObject.parseObject(response.body().string());
         }
         System.out.println(obj);
+    }
+
+    @org.junit.jupiter.api.Test
+    void aaaa() {
+        int[] nums = {0, 0, 1, 1, 1, 2, 2, 3, 3, 4};
+        System.out.println(removeDuplicates(nums));
+    }
+
+
+    public int removeDuplicates(int[] nums) {
+        int n = nums.length;
+        if (n <= 0) {
+            return 0;
+        }
+        int i = 0;
+        int j = 1;
+        while (j < n) {
+            if (nums[i] != nums[j]) {
+                i++;
+                nums[i] = nums[j];
+            }
+            j++;
+        }
+        return i;
     }
 }

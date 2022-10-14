@@ -43,7 +43,7 @@ public class AlgorithmService {
                         aF = aF + 0.01;
                     }
                 }
-                sar =double2(sar + aF * (nav - sar))    ;
+                sar = double2(sar + aF * (nav - sar));
 
                 //變盤
                 if (sar > list.get(i).getEndprice()) {
@@ -61,9 +61,6 @@ public class AlgorithmService {
                     }
                     nav = list.get(i).getLowestprice();
                 }
-
-
-
                 bean.setSar(sar);
                 bean.setName(list.get(i).getName());
                 bean.setUP(up);
@@ -78,7 +75,7 @@ public class AlgorithmService {
                         aF = aF + 0.01;
                     }
                 }
-                sar =double2(sar - aF * (sar - nav))    ;
+                sar = double2(sar - aF * (sar - nav));
                 //收盤 長破sar 變盤
                 if (sar < list.get(i).getEndprice()) {
                     up = true;
@@ -103,15 +100,6 @@ public class AlgorithmService {
                 bean.setTransactiondate(list.get(i).getTransactiondate());
             }
             sarList.add(bean);
-
-            for (SarBean sarBean : sarList) {
-                if ( sarBean.getStockday().compareTo("20220701") > 0    ){
-                    System.out.println(sarBean);
-                }
-
-            }
-
-
         }
         return sarList;
     }
@@ -533,8 +521,8 @@ public class AlgorithmService {
         return result;
     }
 
-    public List<BiasBean> bias(List<StockBean> list) {
-        int day1 = 6;
+    public List<BiasBean> bias(List<StockBean> list , int day1) {
+
         int precision = 100;
         List<Double> a1 = avgLine(list, day1);
         List<BiasBean> result = new ArrayList<>(list.size());
@@ -543,8 +531,103 @@ public class AlgorithmService {
         }
         // 當日股價-最近n日平均股價// 最近n日平均股價
         for (int i = 0; i < list.size(); i++) {
-            result.add(    new BiasBean(list.get(i).getStockday(),double2((list.get(i).getEndprice() - a1.get(i)) / a1.get(i) * precision))                      );
+            result.add(new BiasBean(list.get(i).getStockday(), double2((list.get(i).getEndprice() - a1.get(i)) / a1.get(i) * precision)));
         }
+        return result;
+    }
+
+
+    public Map<String, Object> sarAndBias(List<StockBean> list,int day ,double bias) {
+        List<SarBean> sarList = sar(list);
+        List<BiasBean> biasList = bias(list,day);
+        //計算結果
+        double total = 0;
+        //進價
+        double cas = 0;
+        double yes = 0;
+        double err = 0;
+        boolean buy = false;
+        double los = 0;
+        List<String> mes = new ArrayList<>();
+        String buyday = null;
+        for (int i = 30; i < sarList.size(); i++) {
+            //
+            if (!buy) {
+                if ((sarList.get(i).isUP() && !sarList.get(i - 1).isUP()) && (biasList.get(i).getBias() < -3 || biasList.get(i).getBias() >    3)   ) {
+                    //&& (biasList.get(i).getBias() < -bias || biasList.get(i).getBias() >    bias)
+                    //&& biasList.get(i).getBias() > bias  3
+                    //System.out.println(biasList.get(i).getBias()+"     :     "+-bias);
+
+                    cas = sarList.get(i).getEndprice();
+                    buy = true;
+                    buyday = sarList.get(i).getStockday();
+                    los = sarList.get(i).getEndprice() - 10;
+                }
+            }
+            if (buy) {
+                if (    (!sarList.get(i).isUP() && sarList.get(i - 1).isUP())     ) {
+                    // ||  biasList.get(i).getBias() > bias
+                    if ((sarList.get(i).getEndprice() - cas) > 0) {
+                        yes++;
+
+//                        System.out.println(buyday + "買 " + cas + "     " + sarList.get(i).getStockday() + "賣 " + sarList.get(i).getEndprice() + "  (成功)賺 :" + double2(sarList.get(i).getEndprice() - cas));
+
+                    } else {
+                        err++;
+//                        System.out.println(buyday + "買 " + cas + "     " + sarList.get(i).getStockday() + "賣 " + sarList.get(i).getEndprice() + "  (失敗) :" + double2(sarList.get(i).getEndprice() - cas));
+
+                    }
+
+                    mes.add("買入  :" + buyday + " 賣出:" + sarList.get(i).getStockday() + " 結果:" + Math.round(sarList.get(i).getEndprice() - cas));
+                    buy = false;
+                    total = total + sarList.get(i).getEndprice() - cas;
+                }
+            }
+        }
+        System.out.println("========sarAndBias==============="+bias);
+//        printResult(yes, err, total);
+
+        Map<String, Object> result = new HashMap<>(10);
+        result.put("yes", yes);
+        result.put("err", err);
+        result.put("rate", Math.round(yes / (yes + err) * 100));
+        result.put("total", Math.round(total));
+        result.put("buyDay", mes);
+
+        total = 0;
+        cas = 0;
+        yes = 0;
+        err = 0;
+        buy = false;
+        for (int i = 30; i < sarList.size(); i++) {
+            //
+
+            if (!buy) {
+                if ((!sarList.get(i).isUP() && sarList.get(i - 1).isUP())  && (biasList.get(i).getBias() < -bias || biasList.get(i).getBias() >    bias)        ) {
+                    cas = sarList.get(i).getEndprice();
+                    buy = true;
+                    buyday = sarList.get(i).getStockday();
+                    los = sarList.get(i).getEndprice() + 10;
+                }
+            }
+            if (buy) {
+                if ((sarList.get(i).isUP() && (!sarList.get(i - 1).isUP()))    ) {
+                    if ((cas - sarList.get(i).getEndprice()) > 0) {
+//                        System.out.println(buyday + "買 " + cas + "     " + sarList.get(i).getStockday() + "賣 " + sarList.get(i).getEndprice() + "   (成功)賺 :" + double2(cas - sarList.get(i).getEndprice()));
+
+                        yes++;
+                    } else {
+//                        System.out.println(buyday + "買 " + cas + "     " + sarList.get(i).getStockday() + "賣 " + sarList.get(i).getEndprice() + "   (失敗) :" + double2(cas - sarList.get(i).getEndprice()));
+
+                        err++;
+                    }
+                    buy = false;
+                    total = total + cas - sarList.get(i).getEndprice();
+                }
+            }
+        }
+        System.out.println("========放空sarAndBias==============="+-bias);
+        printResult(yes, err, total);
         return result;
     }
 

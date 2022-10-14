@@ -248,6 +248,9 @@ public class ZeroController {
             return ZeroFactory.success("SAR計算",result);
         }
         return ZeroFactory.fail("指標錯誤");
+
+
+
     }
 
 

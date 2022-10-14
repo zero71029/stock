@@ -30,6 +30,9 @@ class ZeroApplicationTests {
     @Test
     void contextLoads() {
 
+
+
+
     }
 
     @Test
@@ -88,7 +91,7 @@ class ZeroApplicationTests {
     void sar() {
         Map<String, Long> ratelist = new HashMap<>();
 
-        String s = "2330";
+        String s = "00663L";
 
         System.out.println(s);
 
@@ -98,11 +101,15 @@ class ZeroApplicationTests {
         ratelist.put(s, (Long) as.sarResult(sarList).get("total"));
 
         ratelist.forEach((a, o) -> {
-
+            if (o > 200)
                 System.out.println(a + " :" + o);
         });
-        System.out.println(sarList.get(sarList.size()-2));
-        System.out.println(sarList.get(sarList.size()-1));
+        System.out.println(sarList.get(sarList.size() - 6));
+        System.out.println(sarList.get(sarList.size() - 5));
+        System.out.println(sarList.get(sarList.size() - 4));
+        System.out.println(sarList.get(sarList.size() - 3));
+        System.out.println(sarList.get(sarList.size() - 2));
+        System.out.println(sarList.get(sarList.size() - 1));
         System.out.println("=======================");
     }
 
@@ -347,13 +354,70 @@ class ZeroApplicationTests {
         System.out.println(as.double2(total));
         as.sarResult(sar);
     }
+
+
+    // 6  4
     @Test
     void bias() {
-        String s = "2330";
+        String s = "00663L";
         List<StockBean> stock = ss.findByName(s);
-        List<BiasBean> bias = as.bias(stock);
-        bias.forEach(System.out::println);
+        List<BiasBean> bias = as.bias(stock,20);
+        Double buy = 0.0;
+        Double total = 0.0;
+        String buyDay = null;
+        String sellDay = null;
+        boolean isbuy = false;
 
+
+        for (int i = 0; i < bias.size(); i++) {
+            if (!isbuy) {
+                if (bias.get(i).getBias() < -11.0) {
+                    buy = stock.get(i).getEndprice();
+                    buyDay = stock.get(i).getStockday();
+                    isbuy = true;
+                }
+            }
+            if (isbuy) {
+
+                if (bias.get(i).getBias() > -1.0) {
+                    total = as.double2(total + stock.get(i).getEndprice() - buy);
+                    sellDay = stock.get(i).getStockday();
+                    isbuy = false;
+//                    System.out.println(buyDay + " 買 : " + sellDay + " 賣 :  結果=" + as.double2(stock.get(i).getEndprice() - buy));
+
+                }
+            }
+
+            if(bias.get(i).getBias() <-10){
+                System.out.println(bias.get(i));
+            }
+
+        }
+        System.out.println(bias.get(bias.size()-7).getBias());
+        System.out.println(bias.get(bias.size()-6).getBias());
+        System.out.println(bias.get(bias.size()-5).getBias());
+        System.out.println(bias.get(bias.size()-4).getBias());
+        System.out.println(bias.get(bias.size()-3).getBias());
+        System.out.println(bias.get(bias.size()-2).getBias());
+        System.out.println(bias.get(bias.size()-1).getBias());
+        System.out.println(total);
+    }
+
+    @Test
+    void sarAndBias() {
+        //2330 buy 6  6    3
+        //00663L  buy20天  6.5  sell 20 -11
+        //00663
+        String s = "00663L";
+        List<StockBean> stock = ss.findByName(s);
+
+        as.sarResult(as.sar(stock));
+
+
+        for (double i = 0; i <= 15; i++) {
+            as.sarAndBias(stock,20,i);
+        }
+        as.sarAndBias(stock,20,15);
     }
 
 }
